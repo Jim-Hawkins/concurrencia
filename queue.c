@@ -51,7 +51,7 @@ struct element* queue_get(queue *q) {
 
 //To check queue state
 int queue_empty(queue *q){
-    if(q->size == 0){
+    if(q->size == 0){//si el tamano de size es cero es que no hay elementos
 	return 1;
     }
     
