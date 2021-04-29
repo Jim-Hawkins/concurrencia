@@ -28,10 +28,10 @@ int queue_put(queue *q, struct element* x) {
     //primero comprobar si esta lleno
     if(queue_full(q)==1){
 	printf("el queue esta lleno");
-	return -1	
+	return -1;
 	}
-    q->tail = (q->tail + 1) % queue->capacity; //esto nos da en que posicion insertar el elemento en el array
-    q->array[queue->tail] = x;
+    q->tail = (q->tail + 1) % q->capacity; //esto nos da en que posicion insertar el elemento en el array
+    q->array[q->tail] = *x;
     q->size = q->size + 1;
     return 0;
 }
@@ -41,7 +41,7 @@ int queue_put(queue *q, struct element* x) {
 struct element* queue_get(queue *q) {
     struct element* element;
     //comprobar si esta vacio
-    element = q->array[head];//cogemos el elemento cero de la cola
+    *element = q->array[q->head];//cogemos el elemento cero de la cola
     q->head = (q->head + 1) % q->capacity;
     q->size = q->size -1;
     
