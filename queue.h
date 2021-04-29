@@ -9,7 +9,10 @@ struct element {
 
 typedef struct queue {
 	// Define the struct yourself
-	int param1;
+	int size;//el tamano de la cola
+	int head,tail; //son los indices de por donde va la cola :o
+	unsigned capacity; //capacidad que tendra el array (definida por el user(nosotros))
+	struct element *array;
 }queue;
 
 queue* queue_init (int size);
