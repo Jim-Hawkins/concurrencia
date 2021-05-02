@@ -1,6 +1,3 @@
-
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -8,29 +5,29 @@
 #include "queue.h"
 
 
-
 //To create a queue
 queue* queue_init(int capacity){
-    
-    queue * q = (queue *)malloc(sizeof(queue));//queue es un tipoo de dato (como si fuera un int)
-    q->size = 0; //tamano inicial de la cola es cero (no hay datos)
-    q->head = 0; //inicio la cabeza no existe -> no hay datos (como es un entero ponemos cero)
-    q->capacity = capacity;
-    q->tail = capacity - 1;//tail => a capacidad menos 1
-    q->array = (struct element*)malloc(q->capacity * sizeof(int));//el array sera de la capacidad por el tamano del dato que manejamos
-    
+    queue * q = (queue *) malloc(sizeof(queue)); //create a queue-type variable dinamically allocated
+    q->size = 0; 				   //the queue is empty at the beginning
+    q->capacity = capacity;			   //set the queue's capacity
+    q->head = 0; 				   //we will extract elements from the leftmost side of the queue
+    q->tail = capacity - 1;			   //we will insert elements in the rightmost side of the queue
+    							//(refer to the memory of the project for more clearness)
+    q->array = (struct element*) malloc(q->capacity * sizeof(struct element));
+    						   //dinamically create an array of 'capacity' elements
     return q;
 }
 
 
 // To Enqueue an element
 int queue_put(queue *q, struct element* x) {
-    //primero comprobar si esta lleno
-    if(queue_full(q)==1){
-	printf("el queue esta lleno");
+						/*VA A CAMBIAR CUANDO METAMOS MUTEX Y CONDITIONS*/
+    //check if the queue is full
+    if(queue_full(q)){
+	printf("Queue is full");
 	return -1;
 	}
-    q->tail = (q->tail + 1) % q->capacity; //esto nos da en que posicion insertar el elemento en el array
+    q->tail = (q->tail + 1) % q->capacity; //when inserting, tail increases (moves to the right)
     q->array[q->tail] = *x;
     q->size = q->size + 1;
     return 0;
@@ -39,22 +36,23 @@ int queue_put(queue *q, struct element* x) {
 
 // To Dequeue an element.
 struct element* queue_get(queue *q) {
-    struct element* element;
-    //comprobar si esta vacio
-    *element = q->array[q->head];//cogemos el elemento cero de la cola
-    q->head = (q->head + 1) % q->capacity;
-    q->size = q->size -1;
-    
-    return element;
+						/*VA A CAMBIAR CUANDO METAMOS MUTEX Y CONDITIONS*/
+    struct element* candidate;
+    //check if the queue is empty
+    if(!queue_empty(q)){
+    	*candidate = q->array[q->head];	    //extractions are done by the head of the queue
+    	q->head = (q->head + 1) % q->capacity;    //index 'head' increases in order to point to the next element
+    	q->size = q->size - 1;
+    }
+    return candidate;
 }
 
 
 //To check queue state
 int queue_empty(queue *q){
-    if(q->size == 0){//si el tamano de size es cero es que no hay elementos
+    if(q->size == 0){
 	return 1;
     }
-    
     return 0;
 }
 
@@ -67,5 +65,8 @@ int queue_full(queue *q){
 
 //To destroy the queue and free the resources
 int queue_destroy(queue *q){
+    //free the array and the queue itself (which were creacted with a malloc)
+    free(q->array);
+    free(q);
     return 0;
 }

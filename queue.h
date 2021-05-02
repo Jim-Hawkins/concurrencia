@@ -8,11 +8,10 @@ struct element {
 };
 
 typedef struct queue {
-	// Define the struct yourself
-	int size;//el tamano de la cola
-	int head,tail; //son los indices de por donde va la cola :o
-	unsigned capacity; //capacidad que tendra el array (definida por el user(nosotros))
-	struct element *array;
+	int size;		//current number of elements inside the queue
+	int head,tail;		//indices that represente the head and the tail of the queue
+	unsigned capacity;	//user-defined parameter: max capacity of the queue
+	struct element *array; //the container of the queue: an array to store the elements
 }queue;
 
 queue* queue_init (int size);

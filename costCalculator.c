@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <pthread.h>
 #include "queue.h"
+#include "queue.c"
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
