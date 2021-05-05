@@ -23,32 +23,27 @@
  * @return
  */
 int main (int argc, const char * argv[] ) {
-
-
-    int total = 0; 
+    int total = 0; 					//final result
+    int id;						//dummy variable 
     
-    FILE *file;
-    file = fopen(argv[1],"r"); //abrimos fichero
+    FILE * file = fopen(argv[1],"r"); 		//open the file
+    int NUM_PRODUC = atoi(argv[2]); 			//number of producers
+    queue * q = queue_init(atoi(argv[3])); 		//create a queue using a function defined in queue.h
 
-    int NUM_PRODUC = atoi(argv[2]); //num de productores que habra
+    int num_op; 					//number of operations to process
+    fscanf(file, "%d\n", &num_op);
 
-    queue * q = queue_init(atoi(argv[3])); //declaramos la variable cola
+    //printf("%d\n",num_op);
+    
+    //dinamically create an array of element structures
+    struct element * ops = (struct element *) malloc(sizeof(struct element) * num_op);
 
-    int num_op; //num de operaciones a realizar
 
-    fscanf(file,"%d\n",&num_op);
-
-    printf("%d\n",num_op);
-
-    struct element * ops = (struct element *) malloc(sizeof(struct element)*num_op);
-
-    for(int i = 0;i<num_op;i++){
-
-	int id;
+    for(int i = 0; i < num_op; i++){
+    	//store the read information in the variable id and in the structure
+	fscanf(file, "%d %d %d\n",&id, &ops[i].type, &ops[i].time);
 	
-	fscanf(file,"%d %d %d\n",&id,&ops[i].type,&ops[i].time);
-	
-	printf("%d %d %d\n",id, ops[i].type,ops[i].time);
+	//printf("%d %d %d\n",id, ops[i].type,ops[i].time);
 
 
 	//printf("%d %d %d\n",id,elem.type,elem.time);	
