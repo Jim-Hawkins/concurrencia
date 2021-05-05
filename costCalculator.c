@@ -45,10 +45,13 @@ int main (int argc, const char * argv[] ) {
     for(int i = 0;i<num_op;i++){
 
 	int id;
-	struct element elem;
-	fscanf(file,"%d %d %d\n",&id,&elem.type,&elem.time);
 	
-	printf("%d %d %d\n",id,elem.type,elem.time);	
+	fscanf(file,"%d %d %d\n",&id,&ops[i].type,&ops[i].time);
+	
+	printf("%d %d %d\n",id, ops[i].type,ops[i].time);
+
+
+	//printf("%d %d %d\n",id,elem.type,elem.time);	
 
 	}
     
