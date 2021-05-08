@@ -15,7 +15,9 @@
 #define NUM_CONSUMERS 1
 
 //mutex y condiciones como variables globales
-
+pthread_mutex_t mutex;
+pthread_cond_t buffer_not_full;
+pthread_cond_t buffer_not_empty;
 
 //structure to pass parameters to producers
 struct data_producer{
@@ -24,18 +26,56 @@ struct data_producer{
 	queue * q;
 };
 
+struct data_consumer{
+	queue * q;
+	int num_ops;
+};
+
 void *producer(void *data_producer){
-	//mover elemento del array de operaciones a la cola
+	for(int i = data_producer->start; i < data_producer->end; i++){
+		//mover elemento del array de operaciones a la cola
+		struct element * elem = data_producer->array[i];
+		pthread_mutex_lock(&mutex);
+		while(queue_full(data_producer.q)){
+			pthread_cond_wait(&buffer_not_full, &mutex);
+		}
+		//seccion critica
+		queue_put(data_producer->q, elem);
+		//
+		pthread_cond_signal(&buffer_not_empty);
+		pthread_mutex_unlock(&mutex);
+	}
 	printf("hola soy el thread %ld\n", pthread_self());
 	pthread_exit(NULL);
 }
 
 //consumer must return the computed amount trough pthread_exit
-void *consumer(void *q){
+void *consumer(void *data_consumer){
 	int * result;
 	result = (int *) malloc(sizeof(int));
-	//entrar a la cola, extraer dato y sumar
-	*result = 1 + 1;
+	struct element * elem;
+	for(int i = 0; i < data_consumer->num_ops;  i++){
+		//entrar a la cola, extraer dato y sumar
+		pthread_mutex_lock(&mutex);
+		while(queue_empty(data_producer.q)){
+			pthread_cond_wait(&buffer_not_empty, &mutex);
+		}
+		//seccion critica
+		elem = queue_get(q);
+		//
+		pthread_cond_signal(&buffer_not_full);
+		pthread_mutex_unlock(&mutex);
+		
+		switch(elem->type){
+			case 1:
+				*result = *result + elem->time;
+			case 2:
+				*result = *result + elem->time * 3;
+			case 3:
+				*result = *result + elem->time * 10;
+			default: break;
+		}
+	}
 	pthread_exit(result);
 }
 
@@ -106,16 +146,19 @@ int main (int argc, const char * argv[] ) {
     	start = start + slice;
     	end   = end   + slice;
     }
-    
-    //create consumer thread
-    if( (pthread_create(&consumer_t, NULL, consumer, (void*) q)) < 0){
-    	perror("Consumer thread error");
-    }
     //create producers
     for(int p = 0; p < num_producers; p++){
     	if( (pthread_create(&producers_t[p], NULL, producer, &tasks[p])) < 0){
     		perror("Producer thread error");
         }
+    }
+    
+    //create consumer thread
+    struct data_consumer dc;
+    dc->q = q;
+    dc->num_ops = num_op;
+    if( (pthread_create(&consumer_t, NULL, consumer, (void*) dc)) < 0){
+    	perror("Consumer thread error");
     }
 
     //wait for the ending of the threads
