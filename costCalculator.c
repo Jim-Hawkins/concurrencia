@@ -13,16 +13,18 @@
 
 
 #define NUM_CONSUMERS 1
-queue * q ;	//create a queue using a function defined in queue.h and implemented in queue.c
+queue * q ;	//create a queue using a function defined in queue.h and implemented in queue.c de forma global,
+		//para trabajar con la cola de forma global en todas las funciones.
 
-struct element * operations ;
+struct element * operations ; //declaramos de forma global la estrucutra element sobre operations
 
 //mutex y condiciones como variables globales
 pthread_mutex_t mutex;
 pthread_cond_t buffer_not_full;
 pthread_cond_t buffer_not_empty;
 
-//structure to pass parameters to producers
+//structure to pass parameters to producers:
+
 typedef struct {
 	struct element * array; 
 	int start, end;
@@ -30,63 +32,68 @@ typedef struct {
 }data_producer;
 
 typedef struct {
-	
 	int num_ops;
 } data_consumer;
 
 void *producer(void *data_producers){
 	
-	data_producer *dp = (data_producer*) (data_producers) ;
-	printf("inicia productor\n");	
-	
+	data_producer *dp = (data_producer*) (data_producers) ; //transformamos el tipo de dato del parametro al tipo adecuado para operar con ello
+	printf("inicia productor\n");	//to debug
 	
 	for(int i = dp->start; i <= dp->end; i++){
 		
 		//mover elemento del array de operaciones a la cola
 		struct element elem = dp->array[i];
-		printf("product: %d %d \n",elem.type, elem.time);
-		pthread_mutex_lock(&mutex);
-		while(queue_full(q)){
+		printf("product: %d %d \n",elem.type, elem.time); //to debug
+		pthread_mutex_lock(&mutex); //pide acceso a la seccion critica
+
+		while(queue_full(q)){ //si la cola esta llena no ejecuta, (hasta buffer no lleno y mutex este libre)
 			pthread_cond_wait(&buffer_not_full, &mutex);
 		}
-		//seccion critica
-		printf("anadir elem\n");
+		// inicio seccion critica
+		printf("anadir elem\n"); //to debug
 		queue_put(q, &elem);
 
 		for(int a=0;a<q->size;a++){
 			printf("en la cola esta: (type)%d (time)%d \n", q->array[a].type,q->array[a].time);
 }
 		//
-		pthread_cond_signal(&buffer_not_empty);
-		pthread_mutex_unlock(&mutex);
+		pthread_cond_signal(&buffer_not_empty);// senal de que no esta vacia el buffer (para el consumidor)
+		pthread_mutex_unlock(&mutex); //deja la seccion critica
 	}
-	printf("%d %d\n",dp->start,dp->end);
+	//to debug
+	printf("%d %d\n",dp->start,dp->end); 
 	printf("hola soy el thread %ld\n", pthread_self());
 	printf("termina productor\n");
-	pthread_exit(0);
+	//end debug
+	pthread_exit(0); //exit of the thread
 }
 
 //consumer must return the computed amount trough pthread_exit
 void *consumer(void *data_consumers){
-	int * result;
-	data_consumer *dc = (data_consumer*) (data_consumers) ;
-	printf("inicia consumidor\n");
+
+	int * result; //declaramos la variable resultado 
+	data_consumer *dc = (data_consumer*) (data_consumers) ;//transformamos el tipo de dato del parametro al tipo adecuado para operar con ello
+	printf("inicia consumidor\n");//to debug
 	result = (int *) malloc(sizeof(int));
-	struct element  *elem;
+
+	struct element  *elem; //variable para traer el dato de la cola
+
 	for(int i = 0; i < dc->num_ops;  i++){
 		//entrar a la cola, extraer dato y sumar
-		pthread_mutex_lock(&mutex);
-		while(queue_empty(q)){
-			pthread_cond_wait(&buffer_not_empty, &mutex);
+		pthread_mutex_lock(&mutex); //reclama entrar en seccion critica
+
+		while(queue_empty(q)){//mientras el buffer esta vacio espera
+			pthread_cond_wait(&buffer_not_empty, &mutex); //espera hasta que haya algo en el buffer y tenga el mutex
 		}
 		//seccion critica
 		elem = queue_get(q);
-		printf("consumidor: %d %d \n",elem->type, elem->time);
+		printf("consumidor: %d %d \n",elem->type, elem->time); //to debug
 		//
-		pthread_cond_signal(&buffer_not_full);
-		pthread_mutex_unlock(&mutex);
+		pthread_cond_signal(&buffer_not_full); //senal de que el buffer no esta lleno para productor
+		pthread_mutex_unlock(&mutex); 
 		
-		switch(elem->type){
+		switch(elem->type){ //realizamos las operaciones
 			case 1:
 				*result = *result + elem->time;
 				printf("a\n");
@@ -99,14 +106,15 @@ void *consumer(void *data_consumers){
 				*result = *result + elem->time * 10;
 				printf("c\n");
 				break;
-			default: perror("holiii");
+			default: perror("holiii");//to debug no debe entrar aqui
 				break;
 		}
-	printf("resultado: %d\n", *result);
+	printf("resultado: %d\n", *result); //to debug
 	}
-	printf("sera esto :D\n");
-	printf("termina consumidor\n");
-	pthread_exit(result);
+
+	printf("sera esto :D\n"); //to debug
+	printf("termina consumidor\n"); //to debug
+	pthread_exit(result); //cierra hilo y retorna la varible result
 }
 
 /**
