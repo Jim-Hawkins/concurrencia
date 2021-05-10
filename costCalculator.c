@@ -38,33 +38,33 @@ typedef struct {
 void *producer(void *data_producers){
 	
 	data_producer *dp = (data_producer*) (data_producers) ; //transformamos el tipo de dato del parametro al tipo adecuado para operar con ello
-	printf("inicia productor\n");	//to debug
+	//printf("inicia productor\n");	//to debug
 	
 	for(int i = dp->start; i <= dp->end; i++){
 		
 		//mover elemento del array de operaciones a la cola
 		struct element elem = dp->array[i];
-		printf("product: %d %d \n",elem.type, elem.time); //to debug
+		//printf("product: %d %d \n",elem.type, elem.time); //to debug
 		pthread_mutex_lock(&mutex); //pide acceso a la seccion critica
 
 		while(queue_full(q)){ //si la cola esta llena no ejecuta, (hasta buffer no lleno y mutex este libre)
 			pthread_cond_wait(&buffer_not_full, &mutex);
 		}
 		// inicio seccion critica
-		printf("anadir elem\n"); //to debug
+		//printf("anadir elem\n"); //to debug
 		queue_put(q, &elem);
 
 		for(int a=0;a<q->size;a++){
-			printf("en la cola esta: (type)%d (time)%d \n", q->array[a].type,q->array[a].time);
+			//printf("en la cola esta: (type)%d (time)%d \n", q->array[a].type,q->array[a].time);
 }
 		//
 		pthread_cond_signal(&buffer_not_empty);// senal de que no esta vacia el buffer (para el consumidor)
 		pthread_mutex_unlock(&mutex); //deja la seccion critica
 	}
 	//to debug
-	printf("%d %d\n",dp->start,dp->end); 
-	printf("hola soy el thread %ld\n", pthread_self());
-	printf("termina productor\n");
+	//printf("%d %d\n",dp->start,dp->end); 
+	//printf("hola soy el thread %ld\n", pthread_self());
+	//printf("termina productor\n");
 	//end debug
 	pthread_exit(0); //exit of the thread
 }
@@ -74,7 +74,7 @@ void *consumer(void *data_consumers){
 
 	int * result; //declaramos la variable resultado 
 	data_consumer *dc = (data_consumer*) (data_consumers) ;//transformamos el tipo de dato del parametro al tipo adecuado para operar con ello
-	printf("inicia consumidor\n");//to debug
+	//printf("inicia consumidor\n");//to debug
 	result = (int *) malloc(sizeof(int));
 
 	struct element  *elem; //variable para traer el dato de la cola
@@ -88,7 +88,7 @@ void *consumer(void *data_consumers){
 		}
 		//seccion critica
 		elem = queue_get(q);
-		printf("consumidor: %d %d \n",elem->type, elem->time); //to debug
+		//printf("consumidor: %d %d \n",elem->type, elem->time); //to debug
 		//
 		pthread_cond_signal(&buffer_not_full); //senal de que el buffer no esta lleno para productor
 		pthread_mutex_unlock(&mutex); 
@@ -96,24 +96,24 @@ void *consumer(void *data_consumers){
 		switch(elem->type){ //realizamos las operaciones
 			case 1:
 				*result = *result + elem->time;
-				printf("a\n");
+				//printf("a\n");
 				break;
 			case 2:
 				*result = *result + elem->time * 3;
-				printf("b\n");
+				//printf("b\n");
 				break;
 			case 3:
 				*result = *result + elem->time * 10;
-				printf("c\n");
+				//printf("c\n");
 				break;
-			default: perror("holiii");//to debug no debe entrar aqui
+			default: //perror("holiii");//to debug no debe entrar aqui
 				break;
 		}
-	printf("resultado: %d\n", *result); //to debug
+	//printf("resultado: %d\n", *result); //to debug
 	}
 
-	printf("sera esto :D\n"); //to debug
-	printf("termina consumidor\n"); //to debug
+	//printf("sera esto :D\n"); //to debug
+	//printf("termina consumidor\n"); //to debug
 	pthread_exit(result); //cierra hilo y retorna la varible result
 }
 
@@ -124,8 +124,25 @@ void *consumer(void *data_consumers){
  * @return
  */
 int main (int argc, const char * argv[] ) { 
-    q= queue_init(atoi(argv[3]));
+	
+    if(argc != 4){
+	//mas argumentos entrados
+	return -1;
+	}
+
+    if(atoi(argv[3])<=0){
+	//si longitud de la cola es cero retornamos error
+	return -2;	
+	}
+
+    if(atoi(argv[2])<=0){
+	//caso de que los productores sean cero negativos	
+	return -3;
+	}
+
+    q= queue_init(atoi(argv[3])); //inicializamos la cola (se generan todas sus caracteristicas)
     
+    //Creamos todas las condicionales y el mutex
     pthread_cond_init(&buffer_not_full,NULL);
     pthread_cond_init(&buffer_not_empty,NULL);
     pthread_mutex_init(&mutex, NULL);
@@ -146,21 +163,26 @@ int main (int argc, const char * argv[] ) {
     pthread_t consumer_t;			//consumer thread
     int producer_return[num_producers];	//array of return values of the producers
     pthread_t producers_t[num_producers];	//array of producer threads
-    operations= (struct element *) malloc(sizeof(struct element) * num_op);
+
     //dinamically create an array of element structures
-    
-
-
+    operations= (struct element *) malloc(sizeof(struct element) * num_op);
+    int count = 0;
     //store the file information in the variable id (number of process) and in the structure (type and time)
     for(int i = 0; i < num_op; i++){
-	fscanf(file, "%d %d %d\n", &id, &operations[i].type, &operations[i].time);
+	if (fscanf(file, "%d %d %d\n", &id, &operations[i].type, &operations[i].time)!=3){
+		return -4;
+		//caso num_ops > ops
+		
+		}
 	}
 
+
+
     ////only for debug
-    printf("type and time\n");
-    for(int i = 0; i < num_op; i++){
-    	printf("%d %d\n", operations[i].type, operations[i].time);
-    }
+    //printf("type and time\n");
+   // for(int i = 0; i < num_op; i++){
+    //	printf("%d %d\n", operations[i].type, operations[i].time);
+   // }
     ////
 
     //Assignment of the tasks contained in an array to each producer
@@ -182,10 +204,9 @@ int main (int argc, const char * argv[] ) {
     		end = num_op -1;
     	}
     	tasks[t].array = operations;
-	
     	tasks[t].start = start;
     	tasks[t].end   = end;
-    	//tasks[t].q     = q;
+
     	//update start and end
     	start = start + slice;
     	end   = end   + slice;
@@ -200,7 +221,7 @@ int main (int argc, const char * argv[] ) {
     
     //create consumer thread
     data_consumer dc;
-    //dc.q = q;
+
     dc.num_ops = num_op;
     if( (pthread_create(&consumer_t, NULL, (void*)consumer, (void*) &dc)) < 0){
     	perror("Consumer thread error");
