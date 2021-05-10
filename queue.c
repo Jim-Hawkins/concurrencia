@@ -36,21 +36,29 @@ int queue_put(queue *q, struct element* x) {
 
 // To Dequeue an element.
 struct element* queue_get(queue *q) {
-						/*VA A CAMBIAR CUANDO METAMOS MUTEX Y CONDITIONS*/
-    struct element* candidate;
+							/*VA A CAMBIAR CUANDO METAMOS MUTEX Y CONDITIONS*/
+    struct element * candidate;
+    printf("long de cola: %d\n",q->size);
     //check if the queue is empty
-    if(!queue_empty(q)){
-    	*candidate = q->array[q->head];	    //extractions are done by the head of the queue
+    if(queue_empty(q)==1){
+    	printf("estoy vacia");	
+	return candidate;
+    }
+    else {
+	candidate = &(q->array[q->head]);
+	printf("ver que saca la cola(tipo): %d\n",candidate->type);	    //extractions are done by the head of the queue
+	printf("ver que saca la cola(tiempo): %d\n",candidate->time);
     	q->head = (q->head + 1) % q->capacity;    //index 'head' increases in order to point to the next element
     	q->size = q->size - 1;
-    }
-    return candidate;
+	return candidate;	
+	}
+    
 }
 
 
 //To check queue state
 int queue_empty(queue *q){
-    if(q->size == 0){
+    if(q->size <= 0){
 	return 1;
     }
     return 0;
