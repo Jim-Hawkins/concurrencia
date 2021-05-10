@@ -24,7 +24,7 @@ int queue_put(queue *q, struct element* x) {
 						/*VA A CAMBIAR CUANDO METAMOS MUTEX Y CONDITIONS*/
     //check if the queue is full
     if(queue_full(q)){
-	//printf("Queue is full");
+	
 	return -1;
 	}
     q->tail = (q->tail + 1) % q->capacity; //when inserting, tail increases (moves to the right)
@@ -38,16 +38,15 @@ int queue_put(queue *q, struct element* x) {
 struct element* queue_get(queue *q) {
 							/*VA A CAMBIAR CUANDO METAMOS MUTEX Y CONDITIONS*/
     struct element * candidate;
-    //printf("long de cola: %d\n",q->size);
+    
     //check if the queue is empty
     if(queue_empty(q)==1){
-    	//printf("estoy vacia");	
+    		
 	return candidate;
     }
     else {
 	candidate = &(q->array[q->head]);
-	//printf("ver que saca la cola(tipo): %d\n",candidate->type);	    //extractions are done by the head of the queue
-	//printf("ver que saca la cola(tiempo): %d\n",candidate->time);
+	
     	q->head = (q->head + 1) % q->capacity;    //index 'head' increases in order to point to the next element
     	q->size = q->size - 1;
 	return candidate;	
